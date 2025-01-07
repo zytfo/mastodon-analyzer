@@ -1,0 +1,73 @@
+x-logging: &default-logging
+  driver: loki
+  options:
+    loki-url: 'http://localhost:3100/api/prom/push'
+    loki-pipeline-stages: |
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}'
+          max_wait_time: 3s
+      - regex:
+          expression: '^(?P<time>\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2},d{3}) (?P<message>(?s:.*))$$'
+
+services:
+  redis-server:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "6389:6379"
+    networks:
+      - analyzer_network
+    volumes:
+      - /home/devops/analyzer-data/redis-data:/data
+    command:
+      - 'redis-server'
+      - '--requirepass ${REDIS_PASSWORD}'
+      - '--appendonly yes'
+      - '--replica-read-only no'
+
+  rabbitmq:
+    image: rabbitmq:3.10-management-alpine
+    container_name: rabbitmq
+    restart: on-failure
+    expose:
+      - "5672"
+      - "15672"
+    networks:
+      - analyzer_network
+    volumes:
+      - /home/devops/analyzer-data/rabbitmq-data:/var/lib/rabbitmq/
+      - /home/devops/analyzer-data/rabbitmq-log:/var/log/rabbitmq/
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
+  analyzer-api:
+    build: .
+    command: bash -c "alembic upgrade head && gunicorn main:app --config ./gunicorn_config.py"
+    restart: always
+    networks:
+      - analyzer_network
+    depends_on:
+      - loki
+    environment:
+      APP_NAME: "analyzer-api"
+      PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus
+    logging: *default-logging
+    volumes:
+      - ./prometheus_multiproc:/tmp/prometheus
+
+  analyzer-worker:
+    container_name: analyzer-worker
+    build: .
+    command: bash -c "python analyzer_start_celery.py"
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    networks:
+      - analyzer_network
+
+networks:
+  analyzer_network:
+    name: analyzer_network
+    driver: bridge

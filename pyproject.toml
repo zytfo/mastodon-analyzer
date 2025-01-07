@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "mastodon-analyzer"
+version = "0.1.0"
+description = ""
+authors = ["zytfo <khayalievartur@gmail.com>"]
+#package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+uvicorn = {extras = ["standard"], version = "^0.32.1"}
+alembic = "^1.10.2"
+fastapi = "^0.115.5"
+python-dotenv = "^1.0.0"
+sqlalchemy = "^2.0.35"
+asyncpg = "^0.30.0"
+greenlet = "^3.0.3"
+pre-commit = "^4.0.1"
+aiohttp = "^3.9.5"
+pip = "^24.2"
+pydantic = {extras = ["email"], version = "^2.4.2"}
+sentry-sdk = {extras = ["fastapi"], version = "^1.19.1"}
+psycopg2-binary = "^2.9.6"
+celery = {extras = ["redis"], version = "^5.3.1"}
+prometheus-client = "^0.17.1"
+opentelemetry-instrumentation-fastapi = "^0.48b0"
+opentelemetry-instrumentation-logging = "^0.48b0"
+opentelemetry-exporter-otlp = "^1.27.0"
+opentelemetry-api = "^1.27.0"
+opentelemetry-sdk = "^1.27.0"
+slowapi = "^0.1.8"
+redis = ">=4.2.0rc1"
+nickname-generator = "^1.0.1"
+aiogram = "^3.10.0"
+gunicorn = "^23.0.0"
+guvicorn-logger = "^0.1.17"
+pydantic-settings = "^2.4.0"
+httpx = "^0.28.0"
+init-data-py = "^0.2.6"
+orjson = "^3.10.12"
+mastodon-py = "^1.8.1"
+scikit-learn = "^1.6.0"
+nltk = "^3.9.1"
+
+
+[tool.poetry.group.dev.dependencies]
+deptry = "^0.21.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
