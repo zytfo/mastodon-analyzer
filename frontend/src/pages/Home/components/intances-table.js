@@ -99,9 +99,9 @@ export default function InstancesTable() {
     const getInstancesData = async () => {
         try {
             const data = await axios.get(
-                "http://131.130.125.158/api/v1/instances?limit=10000"
+                "http://0.0.0.0:8000/api/v1/instances?limit=10000"
             );
-            setInstances(data.data.result);
+            setInstances(data.data.results);
         } catch (e) {
             console.log(e);
         }
@@ -130,6 +130,9 @@ export default function InstancesTable() {
                 <TableHead>
                     <TableRow>
                         <StyledTableCell>Mastodon Instance URL</StyledTableCell>
+                        <StyledTableCell>Users</StyledTableCell>
+                        <StyledTableCell>Active Users</StyledTableCell>
+                        <StyledTableCell>Statuses</StyledTableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -138,8 +141,17 @@ export default function InstancesTable() {
                             : instances
                     ).map((row) => (
                         <TableRow key={row}>
-                            <TableCell component="th" scope="row">
-                                <a href={row}>{row}</a>
+                            <TableCell style={{ width: 160 }} align="left">
+                                <a href={row.name}>{row.name}</a>
+                            </TableCell>
+                            <TableCell style={{ width: 160 }} align="left">
+                                {row.users}
+                            </TableCell>
+                            <TableCell style={{ width: 160 }} align="left">
+                                {row.active_users}
+                            </TableCell>
+                            <TableCell style={{ width: 160 }} align="left">
+                                {row.statuses}
                             </TableCell>
                         </TableRow>
                     ))}

@@ -99,9 +99,9 @@ export default function SuspiciousTrendsTable() {
     const getSuspiciousTrendsData = async () => {
         try {
             const data = await axios.get(
-                "http://131.130.125.158/api/v1/suspicious-trends?limit=10000"
+                "http://0.0.0.0:8000/api/v1/trends/suspicious?limit=10000"
             );
-            setSuspiciousTrends(data.data.result);
+            setSuspiciousTrends(data.data.results);
         } catch (e) {
             console.log(e);
         }

@@ -114,7 +114,7 @@ def upgrade() -> None:
 
     op.create_table(
         "suspicious_trends",
-        sa.Column("id", sa.Integer(), nullable=False, comment="Suspicious Trend ID"),
+        sa.Column("id", sa.BigInteger(), nullable=False, comment="Suspicious Trend ID"),
         sa.Column("name", sa.String(), nullable=True, comment="Suspicious Trend Name"),
         sa.Column("url", sa.String(), nullable=False, comment="Suspicious Trend URL"),
         sa.Column("uses_in_last_seven_days", sa.Integer(), nullable=True, comment="Uses in Last Seven Days"),

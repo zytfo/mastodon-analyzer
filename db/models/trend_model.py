@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped
 
 from db.db_setup import Base
-from db.models.base import big_int_pk
+from db.models.base import big_int_pk, big_int_pk_increment
 
 
 class TrendModel(Base):
@@ -16,7 +16,7 @@ class TrendModel(Base):
 class SuspiciousTrendModel(Base):
     __tablename__ = "suspicious_trends"
 
-    id: Mapped[big_int_pk]
+    id: Mapped[big_int_pk_increment]
     name: Mapped[str]
     url: Mapped[str]
     uses_in_last_seven_days: Mapped[int]

@@ -1,9 +1,39 @@
 # stdlib
-
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.db_setup import ScopedSession
 from db.models.account_model import AccountModel
+from utils.pagination import calculate_pagination
+
+
+async def get_accounts(session: AsyncSession, page: int, limit: int, instance: str = None):
+    query = (
+        select(AccountModel)
+        .offset((page - 1) * limit)
+        .limit(limit)
+    )
+
+    count_query = (
+        select(func.count(AccountModel.id))
+        .offset((page - 1) * limit)
+        .limit(limit)
+    )
+
+    if instance:
+        query = query.filter(AccountModel.instance_url == instance)  # noqa
+        count_query = count_query.filter(AccountModel.instance_url == instance)  # noqa
+
+    result = await session.execute(query)
+    results = await session.execute(count_query)
+
+    total_count = results.scalar()
+
+    pagination = calculate_pagination(page=page, limit=limit, total_count=total_count)
+    accounts = result.scalars().all()
+
+    return accounts, pagination
 
 
 def create_or_update_account(session: ScopedSession, account: dict, instance_url: str):

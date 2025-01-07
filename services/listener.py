@@ -21,6 +21,7 @@ from settings import get_settings
 from utils.logging import logger
 from utils.similarity_checker import \
     calculate_cosine_similarity_between_two_statuses
+from utils.utils import strip_html
 
 # project
 settings = get_settings()
@@ -46,6 +47,7 @@ class Listener(mastodon.StreamListener):
             status_copy = copy(status)
             status_copy.pop("account", None)
             status_copy["tags"] = [item["name"] for item in status_copy["tags"]]
+            status_copy["content"] = strip_html(status_copy["content"])
 
             save_raw_status(session=session, status=status_copy)
 
@@ -66,11 +68,12 @@ class Listener(mastodon.StreamListener):
                     # get time difference to check
                     difference = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
 
-                    # check if a user was registered less than a month ago, has less than 1000 followers and has less than 100 statuses
+                    # check if a user was registered less than a month ago, has less than 1000 followers and has less
+                    # than 100 statuses
                     if (
-                        created_at >= difference
-                        and account["followers_count"] <= 1000
-                        and account["statuses_count"] <= 100
+                            created_at >= difference
+                            and account["followers_count"] <= 1000
+                            and account["statuses_count"] <= 100
                     ):
                         # check if this is an existing trend
                         trend = check_if_trend_exist(session=session, name=tag["name"])
@@ -94,7 +97,7 @@ class Listener(mastodon.StreamListener):
                             # retrieve info if trend does not exist
                             if not suspicious_trend:
                                 # get info about this trend
-                                with HTTPXMastodonInstanceServiceClient as client:  # type: HTTPXMastodonInstanceServiceClient
+                                with HTTPXMastodonInstanceServiceClient as client:
                                     # get aggregated info about tag in last seven days
                                     url, accounts, uses, errors = client.get_tag_info(tag=tag["name"])
 
@@ -102,7 +105,8 @@ class Listener(mastodon.StreamListener):
                                     if errors:
                                         continue
 
-                                    # check trend info: if less than 100 account and less than 100 uses, it might a suspicious trend, so write in the database
+                                    # check trend info: if less than 100 account and less than 100 uses, it might a
+                                    # suspicious trend, so write in the database
                                     if accounts <= 100 and uses <= 100:
                                         # get rid of unnecessary fields for account model
                                         account.pop("emojis", None)
@@ -149,13 +153,15 @@ class Listener(mastodon.StreamListener):
                                                 status_content_2=status["content"],
                                             )
 
-                                            # if similarity >= 0.5, update suspicious trend model with an incremented number_of_similar_posts value
+                                            # if similarity >= 0.5, update suspicious trend model with an incremented
+                                            # number_of_similar_posts value
                                             if similarity >= 0.5:
                                                 increment_suspicious_trend_number_of_similar_posts(
                                                     session=session,
                                                     suspicious_trend_id=suspicious_trend.id,
-                                                    number_of_similar_statuses=suspicious_trend.number_of_similar_statuses
-                                                    + 1,
+                                                    number_of_similar_statuses=(
+                                                        suspicious_trend.number_of_similar_statuses + 1
+                                                    ),
                                                 )
 
                 # remove unnecessary, non-parsable elements

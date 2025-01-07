@@ -1,5 +1,7 @@
 """Utility functions."""
 
+from html.parser import HTMLParser
+
 # thirdparty
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import \
@@ -16,6 +18,24 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
+
+class HTMLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.fed = []
+
+    def handle_data(self, data):
+        self.fed.append(data)
+
+    def get_data(self):
+        return ''.join(self.fed)
+
+
+def strip_html(html):
+    stripper = HTMLStripper()
+    stripper.feed(html)
+    return stripper.get_data()
 
 def metrics(request: Request) -> Response:
     """Generate metrics for Prometheus."""

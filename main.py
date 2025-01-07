@@ -3,16 +3,19 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
+import nltk
 # thirdparty
 from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
-# project
 from db.session_manager import db_manager
+# project
+from routers import accounts, instances, trends
 from services.listener import listen_mastodon_stream
 from services.mastodon_service import upsert_mastodon_instances
+from services.trends_service import update_mastodon_trends
 from settings import get_settings
 from utils.helpers import (CustomHTTPException, custom_exception_handler,
                            general_exception_handler,
@@ -25,6 +28,8 @@ settings = get_settings()
 
 router = APIRouter(prefix="/api/v1")
 
+nltk.download('punkt')
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # noqa
@@ -33,7 +38,7 @@ async def lifespan(app: FastAPI):  # noqa
 
     async with db_manager.session() as session:
         await upsert_mastodon_instances(session=session)
-        # await update_mastodon_trends(session=session)
+        await update_mastodon_trends(session=session)
         pass
     yield
 
@@ -64,7 +69,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# router.include_router(players.router)
+router.include_router(accounts.router)
+router.include_router(instances.router)
+router.include_router(trends.router)
 app.include_router(router)
 
 

@@ -2,6 +2,7 @@
 
 # thirdparty
 from sqlalchemy import func, insert, select
+from sqlalchemy.dialects.postgresql import insert as postgres_insert
 
 from db.db_setup import ScopedSession
 from db.models.status_model import RawStatusModel, StatusModel
@@ -16,8 +17,10 @@ def save_status(session: ScopedSession, status: dict):
 
 def save_raw_status(session: ScopedSession, status: dict):
     status = dict(**status)
-    query = insert(RawStatusModel).values(status)
-    session.execute(query)
+    insert_stmt = postgres_insert(RawStatusModel).values(status)
+
+    insert_stmt = insert_stmt.on_conflict_do_nothing()
+    session.execute(insert_stmt)
     session.commit()
 
 

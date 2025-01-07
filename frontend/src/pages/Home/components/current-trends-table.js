@@ -99,9 +99,9 @@ export default function CurrentTrendsTable() {
     const getCurrentTrendsData = async () => {
         try {
             const data = await axios.get(
-                "http://131.130.125.158/api/v1/trends?limit=20"
+                "http://0.0.0.0:8000/api/v1/trends?limit=20"
             );
-            setCurrentTrends(data.data.result);
+            setCurrentTrends(data.data.results);
         } catch (e) {
             console.log(e);
         }

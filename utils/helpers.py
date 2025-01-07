@@ -50,9 +50,9 @@ class PaginationModel(BaseModel):
 
 
 def generate_error_response_content(
-        error_response: ErrorResponseEnum, exc: ValidationError = None, traceback: str = None
+    error_response: ErrorResponseEnum, exc: ValidationError = None, traceback: str = None
 ):
-    response = dict(code=error_response.name, message_en=error_response.detail_en, message_ru=error_response.detail_ru)
+    response = dict(code=error_response.name, message_en=error_response.detail_en)
 
     if exc:
         response.update(dict(details=exc.errors()))

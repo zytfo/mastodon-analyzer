@@ -105,9 +105,9 @@ export default function SuspiciousAccountsTable() {
                 parameters += "&instance=" + instance
             }
             const data = await axios.get(
-                "http://131.130.125.158/api/v1/accounts" + parameters
+                "http://0.0.0.0:8000/api/v1/accounts" + parameters
             );
-            setSuspiciousAccounts(data.data.result);
+            setSuspiciousAccounts(data.data.results);
         } catch (e) {
             console.log(e);
         }
@@ -172,7 +172,7 @@ export default function SuspiciousAccountsTable() {
                                     {row.id}
                                 </TableCell>
                                 <TableCell style={{width: 160}} align="left">
-                                    {row.username}>
+                                    {row.username}
                                 </TableCell>
                                 <TableCell style={{width: 160}} align="left">
                                     {row.display_name}

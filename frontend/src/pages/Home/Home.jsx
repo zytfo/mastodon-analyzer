@@ -7,12 +7,12 @@ import SuspiciousAccountsTable from "./components/suspicious-accounts-table";
 const Home = () => {
     return (
         <div>
-            <h1>Mastodon Fediverse Suspicious Trends and Accounts Analyser</h1>
+            <h1>Leveraging AI to Fight Disinformation on Mastodon: Methods and Solutions</h1>
             <div>
                 <h2><a href="https://github.com/zytfo/mastodon_trend_analyzer">Github Repository</a></h2>
                 <h2>Authors: <a href="https://github.com/zytfo/">Artur Khaialiev</a>, <a
                     href="https://ufind.univie.ac.at/de/person.html?id=19954">Paul Fuxjäger</a></h2>
-                <h2><a href="http://fediscience.cosy.univie.ac.at/docs/swagger">Swagger Documentation</a></h2>
+                {/*<h2><a href="http://fediscience.cosy.univie.ac.at/docs/swagger">Swagger Documentation</a></h2>*/}
             </div>
             <br/>
             <br/>

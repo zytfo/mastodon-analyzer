@@ -45,9 +45,6 @@ class Settings(BaseSettings):
     MASTODON_INSTANCE_ENDPOINT: str = "https://mastodon.social"
     MASTODON_INSTANCE_ACCESS_TOKEN: str = ""
 
-    # MASTODON_UPDATE_INSTANCE_ENDPOINT: str = f"https://instances.social/api/1.0/instances/list?count=10000&include_down=false&min_active_users=100"
-    # MASTODON_SOCIAL_TRENDS_ENDPOINT: str = f"{MASTODON_INSTANCE_ENDPOINT}/api/v1/trends/tags?limit=20"
-
     OTLP_GRPC_ENDPOINT: str = "http://tempo:4317"
 
 
