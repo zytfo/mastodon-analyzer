@@ -1,4 +1,3 @@
-# noqa
 # stdlib
 import re
 from copy import copy
@@ -12,9 +11,9 @@ from db.db_setup import ScopedSession
 from services.account_service import create_or_update_account
 from services.mastodon_social_client import HTTPXMastodonInstanceServiceClient
 from services.status_service import (get_statuses_by_tag, save_raw_status,
-                                     save_status)
+                                     save_status, save_status_to_check)
 from services.trends_service import (
-    check_if_suspicious_trend_exist, check_if_trend_exist,
+    check_if_suspicious_trend_exist, check_if_trend_popular,
     create_or_update_suspicious_trend,
     increment_suspicious_trend_number_of_similar_posts)
 from settings import get_settings
@@ -53,33 +52,33 @@ class Listener(mastodon.StreamListener):
 
         # check if only tags is more than 0
         if len(status["tags"]) != 0:
-            tags = []
-            with ScopedSession() as session:
-                for tag in status["tags"]:
-                    # get post author
-                    account = status["account"]
+            # get author
+            account = status["account"]
+            status["content"] = strip_html(status["content"])
 
-                    # add tag to tags array to save status then
-                    tags.append(tag["name"])
+            # get author register date
+            created_at = account["created_at"].strftime("%Y-%m-%d %H:%M:%S")
 
-                    # get author register date
-                    created_at = account["created_at"].strftime("%Y-%m-%d %H:%M:%S")
+            # get time difference to check
+            difference = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
 
-                    # get time difference to check
-                    difference = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
+            # check if a user was registered less than a month ago, has less than 1000 followers and has less
+            # than 100 statuses
+            if (
+                created_at >= difference
+                and account["followers_count"] <= 1000
+                and account["statuses_count"] <= 100
+            ):
+                tags = []
+                with ScopedSession() as session:
+                    for tag in status["tags"]:
+                        tags.append(tag["name"])
 
-                    # check if a user was registered less than a month ago, has less than 1000 followers and has less
-                    # than 100 statuses
-                    if (
-                            created_at >= difference
-                            and account["followers_count"] <= 1000
-                            and account["statuses_count"] <= 100
-                    ):
-                        # check if this is an existing trend
-                        trend = check_if_trend_exist(session=session, name=tag["name"])
+                        # check if this is an existing popular current trend
+                        popular_trend = check_if_trend_popular(session=session, name=tag["name"])
 
-                        # if no trend, this is probably a new one
-                        if not trend:
+                        # if no trend, this is probably a new one, so it might be suspicious
+                        if not popular_trend:
                             # try to find this trend in the database, if not - retrieve information from API
                             suspicious_trend = check_if_suspicious_trend_exist(session=session, name=tag["name"])
 
@@ -105,9 +104,8 @@ class Listener(mastodon.StreamListener):
                                     if errors:
                                         continue
 
-                                    # check trend info: if less than 100 account and less than 100 uses, it might a
-                                    # suspicious trend, so write in the database
-                                    if accounts <= 100 and uses <= 100:
+                                    # check trend info
+                                    if accounts <= 10 and uses <= 10:
                                         # get rid of unnecessary fields for account model
                                         account.pop("emojis", None)
                                         account.pop("fields", None)
@@ -145,6 +143,22 @@ class Listener(mastodon.StreamListener):
                                         # get statuses with this tag to check for a similar status text
                                         statuses = get_statuses_by_tag(session=session, tag=tag["name"])
 
+                                        suspicious_status = dict(
+                                            id=status["id"],
+                                            created_at=status["created_at"],
+                                            language=status["language"],
+                                            url=status["url"],
+                                            content=status["content"],
+                                            is_suspicious=None,
+                                            checked_at=None,
+                                            author_followers_count=account["followers_count"],
+                                            author_following_count=account["following_count"],
+                                            author_statuses_count=account["statuses_count"],
+                                            author_created_at=account["created_at"],
+                                        )
+
+                                        save_status_to_check(session=session, status=suspicious_status)
+
                                         # iterate over all stored statuses by tag
                                         for stored_status in statuses:
                                             # get cosine similarity between stored status and a new one
@@ -153,15 +167,12 @@ class Listener(mastodon.StreamListener):
                                                 status_content_2=status["content"],
                                             )
 
-                                            # if similarity >= 0.5, update suspicious trend model with an incremented
-                                            # number_of_similar_posts value
+                                            # if similarity >= 0.5, increment the number of similar posts for
+                                            # suspicious trend
                                             if similarity >= 0.5:
                                                 increment_suspicious_trend_number_of_similar_posts(
                                                     session=session,
-                                                    suspicious_trend_id=suspicious_trend.id,
-                                                    number_of_similar_statuses=(
-                                                        suspicious_trend.number_of_similar_statuses + 1
-                                                    ),
+                                                    suspicious_trend_id=suspicious_trend.id
                                                 )
 
                 # remove unnecessary, non-parsable elements

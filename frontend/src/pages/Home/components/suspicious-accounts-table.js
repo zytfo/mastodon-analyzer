@@ -94,7 +94,7 @@ const StyledTableCell = styled(TableCell)(({theme}) => ({
 
 export default function SuspiciousAccountsTable() {
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [suspiciousAccounts, setSuspiciousAccounts] = useState([]);
     const [search, setSearch] = useState("");
 
@@ -196,7 +196,7 @@ export default function SuspiciousAccountsTable() {
                                     {row.statuses_count}
                                 </TableCell>
                                 <TableCell style={{width: 160}} align="left">
-                                    {row.last_status_at}
+                                    {new Date(row.last_status_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} {new Date(row.last_status_at).toLocaleDateString('en-CA')}
                                 </TableCell>
                             </TableRow>
                         ))}

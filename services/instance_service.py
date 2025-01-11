@@ -37,6 +37,6 @@ async def get_all_instances(session: AsyncSession, page: int, limit: int):
     total_count = results.scalar()
 
     pagination = calculate_pagination(page=page, limit=limit, total_count=total_count)
-    accounts = result.scalars().all()
+    instances = result.scalars().all()
 
-    return accounts, pagination
+    return instances, pagination

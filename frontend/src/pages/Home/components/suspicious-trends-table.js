@@ -93,7 +93,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 export default function SuspiciousTrendsTable() {
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [suspiciousTrends, setSuspiciousTrends] = useState([]);
 
     const getSuspiciousTrendsData = async () => {

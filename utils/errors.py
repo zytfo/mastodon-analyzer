@@ -18,6 +18,7 @@ class StatusCodeEnum(Enum):
 class ErrorResponseEnum(Enum):
     INCORRECT_PARAMETERS = (StatusCodeEnum.UNPROCESSABLE, "Incorrect parameters for request")
     INVALID_QUERY_PARAMETERS = (StatusCodeEnum.BAD_REQUEST, "Invalid query parameters")
+    SUSPICIOUS_STATUS_NOT_FOUND = (StatusCodeEnum.NOT_FOUND, "Suspicious status not found")
     SOMETHING_WENT_WRONG = (StatusCodeEnum.BAD_REQUEST, "Something went wrong")
 
     def __init__(self, http_code, message_en):

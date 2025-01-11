@@ -54,7 +54,7 @@ def upgrade() -> None:
 
     op.create_table(
         "accounts",
-        sa.Column("id", sa.BigInteger(), nullable=False, comment="Account ID"),
+        sa.Column("id", sa.VARCHAR(), nullable=False, comment="Account ID"),
         sa.Column("username", sa.String(), nullable=True, comment="Username"),
         sa.Column("acct", sa.String(), nullable=True, comment="Acct"),
         sa.Column("display_name", sa.String(), nullable=True, comment="Display Name"),
@@ -82,7 +82,7 @@ def upgrade() -> None:
 
     op.create_table(
         "statuses",
-        sa.Column("id", sa.BigInteger(), nullable=False, comment="Status ID"),
+        sa.Column("id", sa.VARCHAR(), nullable=False, comment="Status ID"),
         sa.Column("created_at", sa.DateTime(), nullable=True, comment="Created At"),
         sa.Column("in_reply_to_id", sa.BigInteger(), nullable=True, comment="In Reply To ID"),
         sa.Column("in_reply_to_account_id", sa.BigInteger(), nullable=True, comment="In Reply To Account ID"),
@@ -102,6 +102,23 @@ def upgrade() -> None:
     )
 
     op.create_index("statuses_tags_index", "statuses", ["tags"], postgresql_using="gin")
+
+    op.create_table(
+        "statuses_to_check",
+        sa.Column("id", sa.VARCHAR(), nullable=False, comment="Status ID"),
+        sa.Column("created_at", sa.DateTime(), nullable=False, comment="Created At"),
+        sa.Column("language", sa.String(), nullable=True, comment="Language"),
+        sa.Column("url", sa.String(), nullable=True, comment="URL"),
+        sa.Column("content", sa.String(), nullable=True, comment="Content"),
+        sa.Column("is_suspicious", sa.Boolean(), nullable=True, comment="Is Status Flagged As Suspicious"),
+        sa.Column("chatgpt_response", sa.String(), nullable=True, comment="ChatGPT Response"),
+        sa.Column("checked_at", sa.DateTime(), nullable=True, comment="Checked At"),
+        sa.Column("author_followers_count", sa.Integer(), nullable=True, comment="Author Followers Count"),
+        sa.Column("author_following_count", sa.Integer(), nullable=True, comment="Author Following Count"),
+        sa.Column("author_statuses_count", sa.Integer(), nullable=True, comment="Author Statuses Count"),
+        sa.Column("author_created_at", sa.DateTime(), nullable=True, comment="Author Created At"),
+        sa.PrimaryKeyConstraint("id"),
+    )
 
     op.create_table(
         "trends",
@@ -135,10 +152,10 @@ def upgrade() -> None:
 
     op.create_table(
         "raw_statuses",
-        sa.Column("id", sa.BigInteger(), nullable=False, comment="Status ID"),
+        sa.Column("id", sa.VARCHAR(), nullable=False, comment="Status ID"),
         sa.Column("created_at", sa.DateTime(), nullable=True, comment="Created At"),
-        sa.Column("in_reply_to_id", sa.BigInteger(), nullable=True, comment="In Reply To ID"),
-        sa.Column("in_reply_to_account_id", sa.BigInteger(), nullable=True, comment="In Reply To Account ID"),
+        sa.Column("in_reply_to_id", sa.VARCHAR(), nullable=True, comment="In Reply To ID"),
+        sa.Column("in_reply_to_account_id", sa.VARCHAR(), nullable=True, comment="In Reply To Account ID"),
         sa.Column("sensitive", sa.Boolean(), nullable=True, comment="Sensitive"),
         sa.Column("spoiler_text", sa.String(), nullable=True, comment="Spoiler Text"),
         sa.Column("visibility", sa.String(), nullable=True, comment="Visibility"),
@@ -159,6 +176,7 @@ def downgrade() -> None:
     op.drop_table("raw_statuses")
     op.drop_table("suspicious_trends")
     op.drop_table("trends")
+    op.drop_table("statuses_to_check")
     op.drop_table("statuses")
     op.drop_table("accounts")
     op.drop_table("instances")

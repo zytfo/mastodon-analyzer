@@ -9,12 +9,16 @@ from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from starlette.websockets import WebSocket
 
 from db.session_manager import db_manager
 # project
-from routers import accounts, instances, trends
+from routers import accounts, instances, statuses, trends
 from services.listener import listen_mastodon_stream
 from services.mastodon_service import upsert_mastodon_instances
+from services.status_service import (get_ai_response,
+                                     get_suspicious_status_by_id,
+                                     save_ai_response)
 from services.trends_service import update_mastodon_trends
 from settings import get_settings
 from utils.helpers import (CustomHTTPException, custom_exception_handler,
@@ -29,6 +33,7 @@ settings = get_settings()
 router = APIRouter(prefix="/api/v1")
 
 nltk.download('punkt')
+nltk.download('punkt_tab')
 
 
 @asynccontextmanager
@@ -72,7 +77,29 @@ app.add_middleware(
 router.include_router(accounts.router)
 router.include_router(instances.router)
 router.include_router(trends.router)
+router.include_router(statuses.router)
 app.include_router(router)
+
+
+@app.websocket("/ws")
+async def ws_endpoint(websocket: WebSocket):
+    """
+    Websocket endpoint
+    """
+    await websocket.accept()
+    while True:
+        message = await websocket.receive_text()
+        async with db_manager.session() as session:
+            status = await get_suspicious_status_by_id(session=session, status_id=message)
+            if not status:
+                await websocket.send_text("Status not found")
+                continue
+
+            status = status.__dict__
+
+            async for text in get_ai_response(status=status):
+                await websocket.send_text(text)
+            await save_ai_response(session=session, status_id=message, ai_response=text)
 
 
 class EndpointFilter(logging.Filter):

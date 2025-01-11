@@ -17,9 +17,9 @@ router = APIRouter(tags=["3. Trends"], prefix="/trends")
 
 @router.get("", response_model=ResultsResponse[TrendSchema])
 async def get_trends(
-        page: int = Query(default=1, ge=1),
-        limit: int = Query(default=20, ge=1),
-        session: AsyncSession = Depends(get_session)
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1),
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Get trends
@@ -38,10 +38,10 @@ async def get_trends(
 
 @router.get("/suspicious", response_model=ResultsResponse[SuspiciousTrendSchema])
 async def get_suspicious_trends(
-        instance: str | None = Query(None),
-        page: int = Query(default=1, ge=1),
-        limit: int = Query(default=20, ge=1),
-        session: AsyncSession = Depends(get_session)
+    instance: str | None = Query(None),
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1),
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Get suspicious trends

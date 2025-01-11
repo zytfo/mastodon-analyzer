@@ -93,7 +93,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 export default function InstancesTable() {
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(20);
     const [instances, setInstances] = useState([]);
 
     const getInstancesData = async () => {

@@ -49,7 +49,7 @@ async def update_mastodon_trends(session: AsyncSession):
             await update_and_retrieve_trends(session=session, trends=retrieved_trends)
 
 
-def check_if_trend_exist(session: ScopedSession, name: str):
+def check_if_trend_popular(session: ScopedSession, name: str):
     query = select(TrendModel).filter(TrendModel.name == name)  # noqa
     result = session.execute(query)
     return result.scalars().one_or_none()
@@ -80,9 +80,9 @@ async def get_all_trends(session: AsyncSession, page: int, limit: int):
     total_count = results.scalar()
 
     pagination = calculate_pagination(page=page, limit=limit, total_count=total_count)
-    accounts = result.scalars().all()
+    trends = result.scalars().all()
 
-    return accounts, pagination
+    return trends, pagination
 
 
 async def get_all_suspicious_trends(session: AsyncSession, page: int, limit: int, instance: str = None):
@@ -108,9 +108,9 @@ async def get_all_suspicious_trends(session: AsyncSession, page: int, limit: int
     total_count = results.scalar()
 
     pagination = calculate_pagination(page=page, limit=limit, total_count=total_count)
-    accounts = result.scalars().all()
+    trends = result.scalars().all()
 
-    return accounts, pagination
+    return trends, pagination
 
 
 def create_or_update_suspicious_trend(
@@ -146,12 +146,10 @@ def create_or_update_suspicious_trend(
     return result
 
 
-def increment_suspicious_trend_number_of_similar_posts(
-        session: ScopedSession, suspicious_trend_id: int, number_of_similar_statuses: int
-):
+def increment_suspicious_trend_number_of_similar_posts(session: ScopedSession, suspicious_trend_id: int):
     query = (
         update(SuspiciousTrendModel)
-        .values(dict(number_of_similar_statuses=number_of_similar_statuses))
+        .values(dict(number_of_similar_statuses=SuspiciousTrendModel.number_of_similar_statuses + 1))
         .filter(SuspiciousTrendModel.id == suspicious_trend_id)  # noqa
     )
 

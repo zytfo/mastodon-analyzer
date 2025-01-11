@@ -93,7 +93,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 export default function CurrentTrendsTable() {
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [currentTrends, setCurrentTrends] = useState([]);
 
     const getCurrentTrendsData = async () => {

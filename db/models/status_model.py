@@ -3,13 +3,13 @@ from datetime import datetime
 from sqlalchemy.orm import Mapped
 
 from db.db_setup import Base
-from db.models.base import big_int, big_int_pk, created_at
+from db.models.base import big_int, created_at, str_pk
 
 
 class StatusModel(Base):
     __tablename__ = "statuses"
 
-    id: Mapped[big_int_pk]
+    id: Mapped[str_pk]
     created_at: Mapped[created_at]
     in_reply_to_id: Mapped[big_int]
     in_reply_to_account_id: Mapped[big_int]
@@ -30,7 +30,7 @@ class StatusModel(Base):
 class RawStatusModel(Base):
     __tablename__ = "raw_statuses"
 
-    id: Mapped[big_int_pk]
+    id: Mapped[str_pk]
     created_at: Mapped[created_at]
     in_reply_to_id: Mapped[big_int]
     in_reply_to_account_id: Mapped[big_int]
