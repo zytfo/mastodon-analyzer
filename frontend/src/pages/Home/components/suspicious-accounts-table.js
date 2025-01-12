@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {styled, useTheme} from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -15,7 +16,6 @@ import FirstPageIcon from '@mui/icons-material/FirstPage';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import LastPageIcon from '@mui/icons-material/LastPage';
-import {useEffect, useState} from "react";
 import axios from "axios";
 import TableHead from "@mui/material/TableHead";
 import {TextField} from "@mui/material";
@@ -114,10 +114,9 @@ export default function SuspiciousAccountsTable() {
     };
 
     useEffect(() => {
-        getSuspiciousAccountsData(10000, null).then(r => null);
+        getSuspiciousAccountsData(10000, null);
     }, []);
 
-    // Avoid a layout jump when reaching the last page with empty rows.
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - suspiciousAccounts.length) : 0;
 
@@ -196,7 +195,10 @@ export default function SuspiciousAccountsTable() {
                                     {row.statuses_count}
                                 </TableCell>
                                 <TableCell style={{width: 160}} align="left">
-                                    {new Date(row.last_status_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} {new Date(row.last_status_at).toLocaleDateString('en-CA')}
+                                    {new Date(row.last_status_at).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })} {new Date(row.last_status_at).toLocaleDateString('en-CA')}
                                 </TableCell>
                             </TableRow>
                         ))}

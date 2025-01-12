@@ -10,10 +10,10 @@ const Home = () => {
         <div>
             <h1>Leveraging AI to Fight Disinformation on Mastodon: Methods and Solutions</h1>
             <div>
-                <h2><a href="https://github.com/zytfo/mastodon-analyzer">Github Repository</a></h2>
+                {/*<h2><a href="https://github.com/zytfo/mastodon-analyzer">Github Repository</a></h2>*/}
                 <h2>Authors: <a href="https://github.com/zytfo/">Artur Khaialiev</a>, <a
                     href="https://ufind.univie.ac.at/de/person.html?id=19954">Paul Fuxjäger</a></h2>
-                <h2><a href="https://fediversechecker.org/docs/swagger">Swagger Documentation</a></h2>
+                {/*<h2><a href="https://fediversechecker.org/docs/swagger">Swagger Documentation</a></h2>*/}
             </div>
             <br/>
             <br/>

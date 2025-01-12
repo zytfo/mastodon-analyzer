@@ -23,7 +23,7 @@ import ReactMarkdown from 'react-markdown';
 
 function TablePaginationActions(props) {
     const theme = useTheme();
-    const { count, page, rowsPerPage, onPageChange } = props;
+    const {count, page, rowsPerPage, onPageChange} = props;
 
     const handleFirstPageButtonClick = (event) => {
         onPageChange(event, 0);
@@ -42,7 +42,7 @@ function TablePaginationActions(props) {
     };
 
     return (
-        <Box sx={{ flexShrink: 0, ml: 2.5 }}>
+        <Box sx={{flexShrink: 0, ml: 2.5}}>
             <IconButton
                 onClick={handleFirstPageButtonClick}
                 disabled={page === 0}
@@ -82,7 +82,7 @@ TablePaginationActions.propTypes = {
     rowsPerPage: PropTypes.number.isRequired,
 };
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
+const StyledTableCell = styled(TableCell)(({theme}) => ({
     [`&.${tableCellClasses.head}`]: {
         backgroundColor: theme.palette.common.black,
         color: theme.palette.common.white,
@@ -94,7 +94,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 export default function SuspiciousStatusesTable() {
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(25);
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [suspiciousStatuses, setSuspiciousStatuses] = useState([]);
 
     const wsRef = useRef(null);
@@ -103,31 +103,19 @@ export default function SuspiciousStatusesTable() {
 
     const getSuspiciousStatusesData = async () => {
         try {
-            const data = await axios.get(
+            const {data} = await axios.get(
                 "http://0.0.0.0:8000/api/v1/statuses/suspicious?limit=10000"
             );
-            console.log(data.data.results)
-            setSuspiciousStatuses(data.data.results);
+            setSuspiciousStatuses(data.results);
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     };
 
     useEffect(() => {
-        getSuspiciousStatusesData().then(r => null);
+        getSuspiciousStatusesData();
     }, []);
 
-    const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - suspiciousStatuses.length) : 0;
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
 
     const handleFetchChatGPT = (statusId) => {
         if (wsRef.current) {
@@ -143,8 +131,7 @@ export default function SuspiciousStatusesTable() {
         };
 
         wsRef.current.onmessage = (event) => {
-            accumulatedResponse  = event.data;
-
+            accumulatedResponse = event.data;
             setStreamBuffer((prev) => ({
                 ...prev,
                 [statusId]: accumulatedResponse,
@@ -157,7 +144,6 @@ export default function SuspiciousStatusesTable() {
 
         wsRef.current.onclose = () => {
             console.log("WebSocket closed, finalizing response.");
-
             setSuspiciousStatuses((prev) =>
                 prev.map((item) => {
                     if (item.id === statusId) {
@@ -179,70 +165,100 @@ export default function SuspiciousStatusesTable() {
         };
     };
 
+    const emptyRows =
+        page > 0
+            ? Math.max(0, (1 + page) * rowsPerPage - suspiciousStatuses.length)
+            : 0;
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
-                <TableHead>
-                    <TableRow>
-                        <StyledTableCell align="left">Created At</StyledTableCell>
-                        <StyledTableCell align="left">Language</StyledTableCell>
-                        <StyledTableCell align="left">Url</StyledTableCell>
-                        <StyledTableCell align="left">Content</StyledTableCell>
-                        <StyledTableCell align="left">Checked At</StyledTableCell>
-                        <StyledTableCell align="left">Author Followers Count</StyledTableCell>
-                        <StyledTableCell align="left">Author Following Count</StyledTableCell>
-                        <StyledTableCell align="left">Author Statuses Count</StyledTableCell>
-                        <StyledTableCell align="left">Author Created At</StyledTableCell>
-                        <StyledTableCell align="left">Analyze</StyledTableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {(suspiciousStatuses.length > 0
-                        ? suspiciousStatuses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                        : suspiciousStatuses
-                    ).map((row) => {
-                        const partialStream = streamBuffer[row.id] || "";
+        <>
+            <Box sx={{display: 'flex', justifyContent: 'flex-end', mb: 1}}>
+                <Button variant="contained" onClick={getSuspiciousStatusesData}>
+                    Refresh
+                </Button>
+            </Box>
 
-                        return (
-                            <TableRow key={row.id}>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    {new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{" "}
-                                    {new Date(row.created_at).toLocaleDateString('en-CA')}
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    {row.language}
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    <a href={row.url}>{row.url}</a>
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    {row.content}
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    {row.checked_at}
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    {row.author_followers_count}
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    {row.author_following_count}
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="left">
-                                    {row.author_statuses_count}
-                                </TableCell>
-                                <TableCell style={{ width: 160 }} align="right">
-                                    {new Date(row.author_created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{" "}
-                                    {new Date(row.author_created_at).toLocaleDateString('en-CA')}
-                                </TableCell>
-                                <TableCell
-                                    style={{ width: 10000000000, verticalAlign: 'top' }}
-                                    align="left"
-                                >
-                                    {row.chatgpt_response ? (
-                                        <ReactMarkdown>{row.chatgpt_response}</ReactMarkdown>
-                                    ) : (
-                                        partialStream ? (
+            <TableContainer component={Paper}>
+                <Table sx={{minWidth: 500}} aria-label="custom pagination table">
+                    <TableHead>
+                        <TableRow>
+                            <StyledTableCell align="left">Created At</StyledTableCell>
+                            <StyledTableCell align="left">Language</StyledTableCell>
+                            <StyledTableCell align="left">Url</StyledTableCell>
+                            <StyledTableCell align="left">Content</StyledTableCell>
+                            <StyledTableCell align="left">Checked At</StyledTableCell>
+                            <StyledTableCell align="left">Author Followers</StyledTableCell>
+                            <StyledTableCell align="left">Author Following</StyledTableCell>
+                            <StyledTableCell align="left">Author Statuses</StyledTableCell>
+                            <StyledTableCell align="right">Author Created At</StyledTableCell>
+                            <StyledTableCell align="left">Analyze</StyledTableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {(suspiciousStatuses.length > 0
+                                ? suspiciousStatuses.slice(
+                                    page * rowsPerPage,
+                                    page * rowsPerPage + rowsPerPage
+                                )
+                                : suspiciousStatuses
+                        ).map((row) => {
+                            const partialStream = streamBuffer[row.id] || "";
+                            return (
+                                <TableRow key={row.id}>
+                                    <TableCell style={{width: 160}} align="left">
+                                        {new Date(row.created_at).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}{" "}
+                                        {new Date(row.created_at).toLocaleDateString("en-CA")}
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="left">
+                                        {row.language}
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="left">
+                                        <a href={row.url} target="_blank" rel="noopener noreferrer">
+                                            {row.url}
+                                        </a>
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="left">
+                                        {row.content}
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="left">
+                                        {row.checked_at}
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="left">
+                                        {row.author_followers_count}
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="left">
+                                        {row.author_following_count}
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="left">
+                                        {row.author_statuses_count}
+                                    </TableCell>
+                                    <TableCell style={{width: 160}} align="right">
+                                        {new Date(row.author_created_at).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}{" "}
+                                        {new Date(row.author_created_at).toLocaleDateString("en-CA")}
+                                    </TableCell>
+                                    <TableCell
+                                        style={{width: 300, verticalAlign: "top"}}
+                                        align="left"
+                                    >
+                                        {/* If we have a final ChatGPT response, show it. Otherwise, partial or a button */}
+                                        {row.chatgpt_response ? (
+                                            <ReactMarkdown>{row.chatgpt_response}</ReactMarkdown>
+                                        ) : partialStream ? (
                                             <ReactMarkdown>{partialStream}</ReactMarkdown>
                                         ) : (
                                             <Button
@@ -251,40 +267,39 @@ export default function SuspiciousStatusesTable() {
                                             >
                                                 Analyze Status
                                             </Button>
-                                        )
-                                    )}
-                                </TableCell>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                        {emptyRows > 0 && (
+                            <TableRow style={{height: 53 * emptyRows}}>
+                                <TableCell colSpan={10}/>
                             </TableRow>
-                        );
-                    })}
-
-                    {emptyRows > 0 && (
-                        <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={10} />
+                        )}
+                    </TableBody>
+                    <TableFooter>
+                        <TableRow>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 25, {label: "All", value: -1}]}
+                                colSpan={10}
+                                count={suspiciousStatuses.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                SelectProps={{
+                                    inputProps: {
+                                        "aria-label": "rows per page",
+                                    },
+                                    native: true,
+                                }}
+                                onPageChange={handleChangePage}
+                                onRowsPerPageChange={handleChangeRowsPerPage}
+                                ActionsComponent={TablePaginationActions}
+                            />
                         </TableRow>
-                    )}
-                </TableBody>
-                <TableFooter>
-                    <TableRow>
-                        <TablePagination
-                            rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-                            colSpan={10}
-                            count={suspiciousStatuses.length}
-                            rowsPerPage={rowsPerPage}
-                            page={page}
-                            SelectProps={{
-                                inputProps: {
-                                    'aria-label': 'rows per page',
-                                },
-                                native: true,
-                            }}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                            ActionsComponent={TablePaginationActions}
-                        />
-                    </TableRow>
-                </TableFooter>
-            </Table>
-        </TableContainer>
+                    </TableFooter>
+                </Table>
+            </TableContainer>
+        </>
     );
 }
