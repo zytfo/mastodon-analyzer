@@ -1,5 +1,6 @@
 # stdlib
 import asyncio
+import json
 import logging
 from contextlib import asynccontextmanager
 
@@ -9,12 +10,13 @@ from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from db.session_manager import db_manager
 # project
 from routers import accounts, instances, statuses, trends
 from services.listener import listen_mastodon_stream
+from services.llm_provider import LLMModel, extract_json_and_confidence
 from services.mastodon_service import upsert_mastodon_instances
 from services.status_service import (get_ai_response,
                                      get_suspicious_status_by_id,
@@ -84,22 +86,104 @@ app.include_router(router)
 @app.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket):
     """
-    Websocket endpoint
+    Websocket endpoint для анализа постов
+
+    Клиент отправляет JSON:
+    {
+        "status_id": "123456",
+        "model": "openai"
+    }
     """
     await websocket.accept()
-    while True:
-        message = await websocket.receive_text()
-        async with db_manager.session() as session:
-            status = await get_suspicious_status_by_id(session=session, status_id=message)
-            if not status:
-                await websocket.send_text("Status not found")
-                continue
 
-            status = status.__dict__
+    try:
+        while True:
+            message_text = await websocket.receive_text()
 
-            async for text in get_ai_response(status=status):
-                await websocket.send_text(text)
-            await save_ai_response(session=session, status_id=message, ai_response=text)
+            try:
+                message_data = json.loads(message_text)
+                status_id = str(message_data.get("status_id"))
+                model_name = message_data.get("model", "openai").lower()
+
+                try:
+                    model = LLMModel(model_name)
+                except ValueError:
+                    await websocket.send_text(json.dumps({
+                        "error": f"Invalid model. Available: {[m.value for m in LLMModel]}"
+                    }))
+                    continue
+
+            except json.JSONDecodeError:
+                status_id = str(message_text)
+                model = LLMModel.OPENAI
+
+            async with db_manager.session() as session:
+                status = await get_suspicious_status_by_id(session=session, status_id=status_id)
+
+                if not status:
+                    await websocket.send_text(json.dumps({
+                        "error": "Status not found",
+                        "status_id": status_id
+                    }))
+                    continue
+
+                status_dict = status.__dict__
+                status_dict.pop('_sa_instance_state', None)
+
+                await websocket.send_text(json.dumps({
+                    "type": "start",
+                    "model": model.value,
+                    "status_id": status_id
+                }))
+
+                final_response = ""
+                try:
+                    async for text in get_ai_response(status=status_dict, model=model):
+                        final_response = text
+                        await websocket.send_text(json.dumps({
+                            "type": "stream",
+                            "content": text
+                        }))
+                except Exception as stream_error:
+                    logger.error(f"Streaming error: {str(stream_error)}", exc_info=True)
+                    await websocket.send_text(json.dumps({
+                        "error": f"Streaming error: {str(stream_error)}"
+                    }))
+                    continue
+
+                _, confidence, is_suspicious = extract_json_and_confidence(final_response)
+
+                try:
+                    await save_ai_response(
+                        session=session,
+                        status_id=status_id,
+                        model=model,
+                        ai_response=final_response,
+                        confidence=confidence,
+                        is_suspicious=is_suspicious
+                    )
+                    await session.commit()
+                except Exception as save_error:
+                    logger.error(f"Save error: {str(save_error)}", exc_info=True)
+                    await session.rollback()
+
+                await websocket.send_text(json.dumps({
+                    "type": "complete",
+                    "model": model.value,
+                    "confidence": confidence,
+                    "is_suspicious": is_suspicious
+                }))
+
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected by client")
+    except Exception as e:
+        logger.error(f"WebSocket error: {str(e)}", exc_info=True)
+        try:
+            await websocket.send_text(json.dumps({
+                "error": str(e)
+            }))
+        except Exception:
+            pass
 
 
 class EndpointFilter(logging.Filter):

@@ -46,7 +46,11 @@ class Settings(BaseSettings):
     MASTODON_INSTANCE_ACCESS_TOKEN: str = ""
 
     OTLP_GRPC_ENDPOINT: str = "http://tempo:4317"
-    CHATGPT_API_KEY: str = ""
+
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    GOOGLE_API_KEY: str = ""
+    TOGETHER_API_KEY: str = ""
 
 
 @cache

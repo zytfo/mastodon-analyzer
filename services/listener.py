@@ -40,6 +40,8 @@ class Listener(mastodon.StreamListener):
         status.pop("poll", None)
         status.pop("filtered", None)
         status.pop("application", None)
+        status.pop("quote", None)
+        status.pop("quote_approval", None)
 
         # store every status
         with ScopedSession() as session:
