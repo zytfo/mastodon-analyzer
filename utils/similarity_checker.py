@@ -3,6 +3,7 @@ from typing import List
 
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # define a stemmer
 stemmer = nltk.stem.porter.PorterStemmer()
@@ -28,4 +29,5 @@ vectorizer = TfidfVectorizer(tokenizer=normalize, stop_words="english")
 # calculate a cosine similarity for two text
 def calculate_cosine_similarity_between_two_statuses(status_content_1: str, status_content_2: str):
     tfidf = vectorizer.fit_transform([status_content_1, status_content_2])
-    return ((tfidf * tfidf.T).A)[0, 1]
+    # Use sklearn's cosine_similarity function or convert sparse matrix properly
+    return cosine_similarity(tfidf[0:1], tfidf[1:2])[0, 0]
