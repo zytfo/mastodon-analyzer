@@ -19,11 +19,14 @@ import LastPageIcon from '@mui/icons-material/LastPage';
 import axios from "axios";
 import TableHead from "@mui/material/TableHead";
 import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
 import ReactMarkdown from 'react-markdown';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import {green, red, grey, blue, purple, orange} from '@mui/material/colors';
 
 function TablePaginationActions(props) {
@@ -134,6 +137,8 @@ export default function SuspiciousStatusesTable() {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [suspiciousStatuses, setSuspiciousStatuses] = useState([]);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogContent, setDialogContent] = useState({ text: '', model: '', confidence: null, isSuspicious: null });
 
     const wsRef = useRef(null);
 
@@ -162,6 +167,20 @@ export default function SuspiciousStatusesTable() {
             }
         };
     }, []);
+
+    const handleOpenDialog = (text, model, confidence, isSuspicious) => {
+        setDialogContent({
+            text,
+            model: MODEL_CONFIGS[model]?.label || model,
+            confidence,
+            isSuspicious
+        });
+        setDialogOpen(true);
+    };
+
+    const handleCloseDialog = () => {
+        setDialogOpen(false);
+    };
 
     const handleFetchLLM = (statusId, model) => {
         const key = `${statusId}-${model}`;
@@ -281,6 +300,10 @@ export default function SuspiciousStatusesTable() {
         const isLoading = loadingStates[key];
         const config = MODEL_CONFIGS[model];
 
+        // Превью текста (первые 100 символов)
+        const previewText = response ? response.substring(0, 100) + (response.length > 100 ? '...' : '') : '';
+        const streamPreview = partialStream ? partialStream.substring(0, 100) + (partialStream.length > 100 ? '...' : '') : '';
+
         return (
             <TableCell
                 style={{
@@ -343,21 +366,39 @@ export default function SuspiciousStatusesTable() {
                                     />
                                 )}
                             </Box>
-                            <Box sx={{
-                                maxHeight: 150,
-                                overflow: 'auto',
-                                p: 0.5,
-                                border: '1px solid #e0e0e0',
-                                borderRadius: 0.5,
-                                backgroundColor: '#f9f9f9',
-                                fontSize: '0.7rem',
-                                wordBreak: 'break-word',
-                                whiteSpace: 'pre-wrap',
-                                '& p': {margin: '2px 0'},
-                                '& ul, & ol': {margin: '2px 0', paddingLeft: '16px'},
-                                '& li': {margin: '1px 0'}
-                            }}>
-                                <ReactMarkdown>{response}</ReactMarkdown>
+                            <Box
+                                onClick={() => handleOpenDialog(response, model, confidence, isSuspicious)}
+                                sx={{
+                                    maxHeight: 80,
+                                    overflow: 'hidden',
+                                    p: 0.5,
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: 0.5,
+                                    backgroundColor: '#f9f9f9',
+                                    fontSize: '0.7rem',
+                                    wordBreak: 'break-word',
+                                    cursor: 'pointer',
+                                    '&:hover': {
+                                        backgroundColor: '#f0f0f0',
+                                        borderColor: config.color
+                                    },
+                                    '& p': {margin: '2px 0'},
+                                    '& ul, & ol': {margin: '2px 0', paddingLeft: '16px'},
+                                    '& li': {margin: '1px 0'}
+                                }}
+                            >
+                                <ReactMarkdown>{previewText}</ReactMarkdown>
+                                {response.length > 100 && (
+                                    <Box sx={{
+                                        color: config.color,
+                                        fontSize: '0.6rem',
+                                        fontWeight: 'bold',
+                                        mt: 0.5,
+                                        textAlign: 'center'
+                                    }}>
+                                        Click to view full response
+                                    </Box>
+                                )}
                             </Box>
                         </Box>
                     ) : partialStream ? (
@@ -380,20 +421,19 @@ export default function SuspiciousStatusesTable() {
                                 <CircularProgress size={12}/>
                             </Box>
                             <Box sx={{
-                                maxHeight: 150,
-                                overflow: 'auto',
+                                maxHeight: 80,
+                                overflow: 'hidden',
                                 p: 0.5,
                                 border: '1px solid #e0e0e0',
                                 borderRadius: 0.5,
                                 backgroundColor: '#f9f9f9',
                                 fontSize: '0.7rem',
                                 wordBreak: 'break-word',
-                                whiteSpace: 'pre-wrap',
                                 '& p': {margin: '2px 0'},
                                 '& ul, & ol': {margin: '2px 0', paddingLeft: '16px'},
                                 '& li': {margin: '1px 0'}
                             }}>
-                                <ReactMarkdown>{partialStream}</ReactMarkdown>
+                                <ReactMarkdown>{streamPreview}</ReactMarkdown>
                             </Box>
                         </Box>
                     ) : (
@@ -568,6 +608,50 @@ export default function SuspiciousStatusesTable() {
                     </TableFooter>
                 </Table>
             </TableContainer>
+
+            {/* Dialog для полного просмотра ответа */}
+            <Dialog
+                open={dialogOpen}
+                onClose={handleCloseDialog}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    backgroundColor: '#f5f5f5'
+                }}>
+                    <span>LLM Analysis - {dialogContent.model}</span>
+                    {dialogContent.confidence !== null && dialogContent.confidence !== undefined && (
+                        <Chip
+                            label={`Confidence: ${(dialogContent.confidence * 100).toFixed(0)}%`}
+                            size="small"
+                            color={dialogContent.confidence > 0.7 ? "success" : dialogContent.confidence > 0.5 ? "warning" : "default"}
+                        />
+                    )}
+                    {dialogContent.isSuspicious !== null && dialogContent.isSuspicious !== undefined && (
+                        <Chip
+                            label={dialogContent.isSuspicious ? "Suspicious ⚠️" : "Not Suspicious ✓"}
+                            size="small"
+                            color={dialogContent.isSuspicious ? "error" : "success"}
+                        />
+                    )}
+                </DialogTitle>
+                <DialogContent dividers sx={{
+                    '& p': { marginBottom: 2 },
+                    '& ul, & ol': { marginLeft: 2, marginBottom: 2 },
+                    '& li': { marginBottom: 1 },
+                    '& h1, & h2, & h3': { marginTop: 2, marginBottom: 1 }
+                }}>
+                    <ReactMarkdown>{dialogContent.text}</ReactMarkdown>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog} variant="contained">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }

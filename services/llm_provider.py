@@ -1,6 +1,7 @@
 # stdlib
 import json
 import re
+from datetime import datetime
 from enum import Enum
 from typing import AsyncGenerator, Dict, Tuple
 
@@ -40,10 +41,14 @@ class LLMProvider:
         )
 
     def build_prompt(self, status: dict) -> str:
+        current_date = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
         return f"""
 You are an expert in social media content analysis with specialized knowledge in detecting AI-generated or suspicious
 posts.
 Your task is to analyze the following Mastodon post and evaluate whether it is likely suspicious or AI-generated.
+
+**Current Date and Time:** {current_date}
 
 **Post Analysis Details:**
 
