@@ -91,9 +91,12 @@ const StyledTableCell = styled(TableCell)(({theme}) => ({
     [`&.${tableCellClasses.head}`]: {
         backgroundColor: theme.palette.common.black,
         color: theme.palette.common.white,
+        padding: '8px 6px',
+        fontSize: '0.75rem',
     },
     [`&.${tableCellClasses.body}`]: {
-        fontSize: 14,
+        fontSize: 12,
+        padding: '6px 4px',
     },
 }));
 
@@ -281,84 +284,114 @@ export default function SuspiciousStatusesTable() {
         return (
             <TableCell
                 style={{
-                    minWidth: 300,
-                    maxWidth: 400,
-                    verticalAlign: "top"
+                    minWidth: 180,
+                    maxWidth: 220,
+                    verticalAlign: "top",
+                    padding: '6px 4px'
                 }}
                 align="left"
             >
-                <Box sx={{mb: 1}}>
+                <Box>
                     {response ? (
                         <Box>
-                            <Box sx={{display: 'flex', gap: 0.5, mb: 1, alignItems: 'center', flexWrap: 'wrap'}}>
-                                <Chip
-                                    label={`${config.icon} ${config.label}`}
-                                    size="small"
-                                    sx={{
-                                        backgroundColor: config.color,
-                                        color: 'white',
-                                        fontSize: '0.7rem',
-                                        height: '22px'
-                                    }}
-                                />
+                            <Box sx={{display: 'flex', gap: 0.3, mb: 0.5, alignItems: 'center', flexWrap: 'wrap'}}>
+                                <Tooltip title={config.label}>
+                                    <Chip
+                                        label={config.icon}
+                                        size="small"
+                                        sx={{
+                                            backgroundColor: config.color,
+                                            color: 'white',
+                                            fontSize: '0.65rem',
+                                            height: '18px',
+                                            minWidth: '24px',
+                                            '& .MuiChip-label': {
+                                                padding: '0 4px'
+                                            }
+                                        }}
+                                    />
+                                </Tooltip>
                                 {confidence !== null && confidence !== undefined && (
-                                    <Tooltip title="Confidence Level">
+                                    <Tooltip title="Confidence">
                                         <Chip
                                             label={`${(confidence * 100).toFixed(0)}%`}
                                             size="small"
                                             color={confidence > 0.7 ? "success" : confidence > 0.5 ? "warning" : "default"}
-                                            sx={{fontSize: '0.7rem', height: '22px'}}
+                                            sx={{
+                                                fontSize: '0.65rem',
+                                                height: '18px',
+                                                '& .MuiChip-label': {
+                                                    padding: '0 4px'
+                                                }
+                                            }}
                                         />
                                     </Tooltip>
                                 )}
                                 {isSuspicious !== null && isSuspicious !== undefined && (
                                     <Chip
-                                        label={isSuspicious ? "Suspicious" : "Legit"}
+                                        label={isSuspicious ? "⚠️" : "✓"}
                                         size="small"
                                         color={isSuspicious ? "error" : "success"}
-                                        sx={{fontSize: '0.7rem', height: '22px'}}
+                                        sx={{
+                                            fontSize: '0.65rem',
+                                            height: '18px',
+                                            minWidth: '24px',
+                                            '& .MuiChip-label': {
+                                                padding: '0 4px'
+                                            }
+                                        }}
                                     />
                                 )}
                             </Box>
                             <Box sx={{
-                                maxHeight: 250,
+                                maxHeight: 150,
                                 overflow: 'auto',
-                                p: 1,
+                                p: 0.5,
                                 border: '1px solid #e0e0e0',
-                                borderRadius: 1,
+                                borderRadius: 0.5,
                                 backgroundColor: '#f9f9f9',
-                                fontSize: '0.8rem',
+                                fontSize: '0.7rem',
                                 wordBreak: 'break-word',
-                                whiteSpace: 'pre-wrap'
+                                whiteSpace: 'pre-wrap',
+                                '& p': {margin: '2px 0'},
+                                '& ul, & ol': {margin: '2px 0', paddingLeft: '16px'},
+                                '& li': {margin: '1px 0'}
                             }}>
                                 <ReactMarkdown>{response}</ReactMarkdown>
                             </Box>
                         </Box>
                     ) : partialStream ? (
                         <Box>
-                            <Box sx={{display: 'flex', gap: 0.5, mb: 1, alignItems: 'center', flexWrap: 'wrap'}}>
+                            <Box sx={{display: 'flex', gap: 0.3, mb: 0.5, alignItems: 'center'}}>
                                 <Chip
-                                    label={`${config.icon} ${config.label}`}
+                                    label={config.icon}
                                     size="small"
                                     sx={{
                                         backgroundColor: config.color,
                                         color: 'white',
-                                        fontSize: '0.7rem',
-                                        height: '22px'
+                                        fontSize: '0.65rem',
+                                        height: '18px',
+                                        minWidth: '24px',
+                                        '& .MuiChip-label': {
+                                            padding: '0 4px'
+                                        }
                                     }}
                                 />
-                                <CircularProgress size={14}/>
+                                <CircularProgress size={12}/>
                             </Box>
                             <Box sx={{
-                                maxHeight: 250,
+                                maxHeight: 150,
                                 overflow: 'auto',
-                                p: 1,
+                                p: 0.5,
                                 border: '1px solid #e0e0e0',
-                                borderRadius: 1,
+                                borderRadius: 0.5,
                                 backgroundColor: '#f9f9f9',
-                                fontSize: '0.8rem',
+                                fontSize: '0.7rem',
                                 wordBreak: 'break-word',
-                                whiteSpace: 'pre-wrap'
+                                whiteSpace: 'pre-wrap',
+                                '& p': {margin: '2px 0'},
+                                '& ul, & ol': {margin: '2px 0', paddingLeft: '16px'},
+                                '& li': {margin: '1px 0'}
                             }}>
                                 <ReactMarkdown>{partialStream}</ReactMarkdown>
                             </Box>
@@ -369,18 +402,20 @@ export default function SuspiciousStatusesTable() {
                             size="small"
                             onClick={() => handleFetchLLM(row.id, model)}
                             disabled={isLoading}
-                            startIcon={isLoading ? <CircularProgress size={14}/> : null}
+                            startIcon={isLoading ? <CircularProgress size={10}/> : null}
                             sx={{
                                 borderColor: config.color,
                                 color: config.color,
-                                fontSize: '0.7rem',
+                                fontSize: '0.65rem',
+                                padding: '2px 6px',
+                                minWidth: '70px',
                                 '&:hover': {
                                     borderColor: config.color,
                                     backgroundColor: `${config.color}10`
                                 }
                             }}
                         >
-                            {isLoading ? 'Analyzing...' : `${config.icon} Analyze`}
+                            {isLoading ? 'Loading' : `${config.icon}`}
                         </Button>
                     )}
                 </Box>
@@ -405,16 +440,27 @@ export default function SuspiciousStatusesTable() {
     return (
         <>
             <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center'}}>
-                <Box sx={{display: 'flex', gap: 1}}>
+                <Box sx={{display: 'flex', gap: 0.5}}>
                     {Object.entries(MODEL_CONFIGS).map(([key, config]) => (
                         <Chip
                             key={key}
                             label={`${config.icon} ${config.label}`}
-                            sx={{backgroundColor: config.color, color: 'white'}}
+                            size="small"
+                            sx={{
+                                backgroundColor: config.color,
+                                color: 'white',
+                                fontSize: '0.7rem',
+                                height: '24px'
+                            }}
                         />
                     ))}
                 </Box>
-                <Button variant="contained" onClick={getSuspiciousStatusesData}>
+                <Button
+                    variant="contained"
+                    size="small"
+                    onClick={getSuspiciousStatusesData}
+                    sx={{fontSize: '0.75rem'}}
+                >
                     Refresh
                 </Button>
             </Box>
@@ -423,15 +469,15 @@ export default function SuspiciousStatusesTable() {
                 <Table stickyHeader sx={{minWidth: 500}} aria-label="custom pagination table">
                     <TableHead>
                         <TableRow>
-                            <StyledTableCell align="left" sx={{minWidth: 140}}>Created At</StyledTableCell>
-                            <StyledTableCell align="left" sx={{width: 60}}>Lang</StyledTableCell>
-                            <StyledTableCell align="left" sx={{minWidth: 100}}>Link</StyledTableCell>
-                            <StyledTableCell align="left" sx={{minWidth: 250, maxWidth: 300}}>Content</StyledTableCell>
-                            <StyledTableCell align="left" sx={{minWidth: 150}}>Author Info</StyledTableCell>
-                            <StyledTableCell align="left" sx={{minWidth: 300}}>🤖 GPT-4</StyledTableCell>
-                            <StyledTableCell align="left" sx={{minWidth: 300}}>🧠 Claude</StyledTableCell>
-                            <StyledTableCell align="left" sx={{minWidth: 300}}>✨ Gemini</StyledTableCell>
-                            <StyledTableCell align="left" sx={{minWidth: 300}}>🦙 Llama</StyledTableCell>
+                            <StyledTableCell align="left" sx={{width: 80}}>Date</StyledTableCell>
+                            <StyledTableCell align="left" sx={{width: 40}}>Lang</StyledTableCell>
+                            <StyledTableCell align="left" sx={{width: 50}}>Link</StyledTableCell>
+                            <StyledTableCell align="left" sx={{minWidth: 150, maxWidth: 200}}>Content</StyledTableCell>
+                            <StyledTableCell align="left" sx={{width: 100}}>Author</StyledTableCell>
+                            <StyledTableCell align="left" sx={{minWidth: 180, maxWidth: 220}}>🤖 GPT</StyledTableCell>
+                            <StyledTableCell align="left" sx={{minWidth: 180, maxWidth: 220}}>🧠 Claude</StyledTableCell>
+                            <StyledTableCell align="left" sx={{minWidth: 180, maxWidth: 220}}>✨ Gemini</StyledTableCell>
+                            <StyledTableCell align="left" sx={{minWidth: 180, maxWidth: 220}}>🦙 Llama</StyledTableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -445,16 +491,16 @@ export default function SuspiciousStatusesTable() {
                             return (
                                 <TableRow key={row.id}>
                                     <TableCell align="left">
-                                        <Box sx={{fontSize: '0.75rem', whiteSpace: 'nowrap'}}>
+                                        <Box sx={{fontSize: '0.65rem', whiteSpace: 'nowrap'}}>
                                             <div>{new Date(row.created_at).toLocaleTimeString([], {
                                                 hour: '2-digit',
                                                 minute: '2-digit',
                                             })}</div>
-                                            <div>{new Date(row.created_at).toLocaleDateString("en-CA")}</div>
+                                            <div>{new Date(row.created_at).toLocaleDateString("en-CA").slice(5)}</div>
                                         </Box>
                                     </TableCell>
                                     <TableCell align="left">
-                                        <Box sx={{fontSize: '0.75rem'}}>
+                                        <Box sx={{fontSize: '0.65rem'}}>
                                             {row.language}
                                         </Box>
                                     </TableCell>
@@ -463,16 +509,16 @@ export default function SuspiciousStatusesTable() {
                                             href={row.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            style={{fontSize: '0.75rem'}}
+                                            style={{fontSize: '0.65rem'}}
                                         >
                                             View
                                         </a>
                                     </TableCell>
                                     <TableCell align="left">
                                         <Box sx={{
-                                            maxHeight: 100,
+                                            maxHeight: 80,
                                             overflow: 'auto',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.65rem',
                                             wordBreak: 'break-word',
                                             whiteSpace: 'pre-wrap'
                                         }}>
@@ -480,11 +526,11 @@ export default function SuspiciousStatusesTable() {
                                         </Box>
                                     </TableCell>
                                     <TableCell align="left">
-                                        <Box sx={{fontSize: '0.7rem'}}>
-                                            <div><strong>👥</strong> {row.author_followers_count}</div>
-                                            <div><strong>➡️</strong> {row.author_following_count}</div>
-                                            <div><strong>📝</strong> {row.author_statuses_count}</div>
-                                            <div><strong>📅</strong> {new Date(row.author_created_at).toLocaleDateString("en-CA")}</div>
+                                        <Box sx={{fontSize: '0.6rem', lineHeight: 1.3}}>
+                                            <div>👥 {row.author_followers_count}</div>
+                                            <div>➡️ {row.author_following_count}</div>
+                                            <div>📝 {row.author_statuses_count}</div>
+                                            <div>📅 {new Date(row.author_created_at).toLocaleDateString("en-CA").slice(2)}</div>
                                         </Box>
                                     </TableCell>
                                     {renderAnalysisCell(row, LLM_MODELS.OPENAI)}
