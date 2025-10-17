@@ -139,6 +139,8 @@ export default function SuspiciousStatusesTable() {
     const [suspiciousStatuses, setSuspiciousStatuses] = useState([]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogContent, setDialogContent] = useState({ text: '', model: '', confidence: null, isSuspicious: null });
+    const [contentDialogOpen, setContentDialogOpen] = useState(false);
+    const [selectedContent, setSelectedContent] = useState({ text: '', author: '', date: '', url: '' });
 
     const wsRef = useRef(null);
 
@@ -180,6 +182,20 @@ export default function SuspiciousStatusesTable() {
 
     const handleCloseDialog = () => {
         setDialogOpen(false);
+    };
+
+    const handleOpenContentDialog = (content, author, date, url) => {
+        setSelectedContent({
+            text: content,
+            author: author,
+            date: date,
+            url: url
+        });
+        setContentDialogOpen(true);
+    };
+
+    const handleCloseContentDialog = () => {
+        setContentDialogOpen(false);
     };
 
     const handleFetchLLM = (statusId, model) => {
@@ -300,7 +316,6 @@ export default function SuspiciousStatusesTable() {
         const isLoading = loadingStates[key];
         const config = MODEL_CONFIGS[model];
 
-        // Превью текста (первые 100 символов)
         const previewText = response ? response.substring(0, 100) + (response.length > 100 ? '...' : '') : '';
         const streamPreview = partialStream ? partialStream.substring(0, 100) + (partialStream.length > 100 ? '...' : '') : '';
 
@@ -555,12 +570,26 @@ export default function SuspiciousStatusesTable() {
                                         </a>
                                     </TableCell>
                                     <TableCell align="left">
-                                        <Box sx={{
+                                        <Box
+                                            onClick={() => handleOpenContentDialog(
+                                                row.content,
+                                                `👥 ${row.author_followers_count} | ➡️ ${row.author_following_count} | 📝 ${row.author_statuses_count}`,
+                                                row.created_at,
+                                                row.url
+                                            )}
+                                            sx={{
                                             maxHeight: 80,
-                                            overflow: 'auto',
+                                            overflow: 'hidden',
                                             fontSize: '0.65rem',
                                             wordBreak: 'break-word',
-                                            whiteSpace: 'pre-wrap'
+                                            whiteSpace: 'pre-wrap',
+                                            cursor: 'pointer',
+                                            padding: '4px',
+                                            borderRadius: '4px',
+                                            '&:hover': {
+                                                backgroundColor: '#f0f0f0',
+                                                border: '1px solid #1976d2'
+                                            }
                                         }}>
                                             {row.content}
                                         </Box>
@@ -609,7 +638,7 @@ export default function SuspiciousStatusesTable() {
                 </Table>
             </TableContainer>
 
-            {/* Dialog для полного просмотра ответа */}
+            {/* Dialog для полного просмотра ответа LLM */}
             <Dialog
                 open={dialogOpen}
                 onClose={handleCloseDialog}
@@ -648,6 +677,50 @@ export default function SuspiciousStatusesTable() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDialog} variant="contained">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog для просмотра полного контента */}
+            <Dialog
+                open={contentDialogOpen}
+                onClose={handleCloseContentDialog}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    backgroundColor: '#f5f5f5'
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>Status Content</span>
+                        <a
+                            href={selectedContent.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '0.85rem', textDecoration: 'none' }}
+                        >
+                            View Original 🔗
+                        </a>
+                    </Box>
+                    <Box sx={{ fontSize: '0.75rem', color: '#666' }}>
+                        <div>{selectedContent.author}</div>
+                        <div>{selectedContent.date ? new Date(selectedContent.date).toLocaleString() : ''}</div>
+                    </Box>
+                </DialogTitle>
+                <DialogContent dividers sx={{
+                    fontSize: '0.9rem',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    lineHeight: 1.5
+                }}>
+                    {selectedContent.text}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseContentDialog} variant="contained">
                         Close
                     </Button>
                 </DialogActions>
