@@ -19,6 +19,13 @@ services:
       timeout: 5s
       retries: 5
 
+  analyzer-api:
+    build: .
+    command: bash -c "alembic upgrade head && gunicorn main:app --config ./gunicorn_config.py"
+    restart: always
+    networks:
+      - analyzer_network
+
   webserver:
     image: nginx:latest
     container_name: nginx
