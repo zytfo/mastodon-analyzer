@@ -99,7 +99,7 @@ export default function SuspiciousTrendsTable() {
     const getSuspiciousTrendsData = async () => {
         try {
             const data = await axios.get(
-                "http://0.0.0.0:8000/api/v1/trends/suspicious?limit=10000"
+                "https://mastodon.igloomarket.xyz/api/v1/trends/suspicious?limit=10000"
             );
             setSuspiciousTrends(data.data.results);
         } catch (e) {

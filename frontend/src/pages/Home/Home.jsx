@@ -35,7 +35,7 @@ const Home = () => {
                     </div>
                     <div className={styles.headerButtons}>
                         <a
-                            href="https://fediversechecker.org/docs/swagger"
+                            href="https://mastodon.igloomarket.xyz/docs/swagger"
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`${styles.headerButton} ${styles.headerButtonSecondary}`}
@@ -116,6 +116,8 @@ const Home = () => {
                     <p>
                         Authors: {' '}
                         <a href="https://github.com/zytfo/">Artur Khaialiev</a>
+                        {', '}
+                        <a href="https://cs.univie.ac.at/Peter.Reichl/">Univ.-Prof. Dipl.-Math. Dr.Peter Reichl</a>
                         {', '}
                         <a href="https://ufind.univie.ac.at/de/person.html?id=19954">Paul Fuxjäger</a>
                     </p>

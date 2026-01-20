@@ -99,7 +99,7 @@ export default function InstancesTable() {
     const getInstancesData = async () => {
         try {
             const data = await axios.get(
-                "http://0.0.0.0:8000/api/v1/instances?limit=10000"
+                "https://mastodon.igloomarket.xyz/api/v1/instances?limit=10000"
             );
             setInstances(data.data.results);
         } catch (e) {

@@ -99,7 +99,7 @@ export default function CurrentTrendsTable() {
     const getCurrentTrendsData = async () => {
         try {
             const data = await axios.get(
-                "http://0.0.0.0:8000/api/v1/trends?limit=20"
+                "https://mastodon.igloomarket.xyz/api/v1/trends?limit=20"
             );
             setCurrentTrends(data.data.results);
         } catch (e) {

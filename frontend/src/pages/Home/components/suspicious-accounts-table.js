@@ -105,7 +105,7 @@ export default function SuspiciousAccountsTable() {
                 parameters += "&instance=" + instance
             }
             const data = await axios.get(
-                "http://0.0.0.0:8000/api/v1/accounts" + parameters
+                "https://mastodon.igloomarket.xyz/api/v1/accounts" + parameters
             );
             setSuspiciousAccounts(data.data.results);
         } catch (e) {

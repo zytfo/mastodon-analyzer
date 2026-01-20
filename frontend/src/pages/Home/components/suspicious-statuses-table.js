@@ -150,7 +150,7 @@ export default function SuspiciousStatusesTable() {
     const getSuspiciousStatusesData = async () => {
         try {
             const {data} = await axios.get(
-                "http://0.0.0.0:8000/api/v1/statuses/suspicious?limit=10000"
+                "https://mastodon.igloomarket.xyz/api/v1/statuses/suspicious?limit=10000"
             );
             setSuspiciousStatuses(data.results);
         } catch (e) {
@@ -206,7 +206,7 @@ export default function SuspiciousStatusesTable() {
             wsRef.current = null;
         }
 
-        const ws = new WebSocket("ws://0.0.0.0:8000/ws");
+        const ws = new WebSocket("ws://mastodon.igloomarket.xyz/ws");
         wsRef.current = ws;
 
         let accumulatedResponse = "";
