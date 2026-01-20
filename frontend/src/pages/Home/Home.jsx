@@ -35,7 +35,7 @@ const Home = () => {
                     </div>
                     <div className={styles.headerButtons}>
                         <a
-                            href="https://mastodon.igloomarket.xyz/docs/swagger"
+                            href="https://mastodon.igloomarket.xyz/docs"
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`${styles.headerButton} ${styles.headerButtonSecondary}`}
