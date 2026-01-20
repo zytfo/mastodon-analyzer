@@ -63,9 +63,11 @@ app = FastAPI(
     title="Mastodon Analyzer API",
     version="0.0.1",
     lifespan=lifespan,
-    docs_url=None if settings.ENV == "prod" else "/docs",
+    # docs_url=None if settings.ENV == "prod" else "/docs",
+    docs_url="/docs",
     redoc_url=None,
-    openapi_url=None if settings.ENV == "prod" else "/openapi.json",
+    # openapi_url=None if settings.ENV == "prod" else "/openapi.json",
+    openapi_url="/openapi.json",
 )
 
 app.add_middleware(
