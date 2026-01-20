@@ -206,7 +206,7 @@ export default function SuspiciousStatusesTable() {
             wsRef.current = null;
         }
 
-        const ws = new WebSocket("ws://mastodon.igloomarket.xyz/ws");
+        const ws = new WebSocket("wss://mastodon.igloomarket.xyz/ws");
         wsRef.current = ws;
 
         let accumulatedResponse = "";
