@@ -8,7 +8,7 @@ server {
     proxy_set_header X-Forwarded-Proto https;
     proxy_set_header HTTPS "on";
 
-    server_name api.fediversechecker.org;
+    server_name mastodon.igloomarket.xyz;
     server_tokens off;
 
     location / {

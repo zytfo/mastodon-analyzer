@@ -41,20 +41,20 @@ nltk.download('punkt_tab')
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # noqa
     db_manager.init(settings.DATABASE_URL)
-    task = asyncio.create_task(listen_mastodon_stream())
-
-    async with db_manager.session() as session:
-        await upsert_mastodon_instances(session=session)
-        await update_mastodon_trends(session=session)
-        pass
+    # task = asyncio.create_task(listen_mastodon_stream())
+    #
+    # async with db_manager.session() as session:
+    #     await upsert_mastodon_instances(session=session)
+    #     await update_mastodon_trends(session=session)
+    #     pass
     yield
 
     logger.info("Shutting down Mastodon stream.")
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        logger.info("Mastodon stream listener shut down gracefully.")
+    # task.cancel()
+    # try:
+    #     await task
+    # except asyncio.CancelledError:
+    #     logger.info("Mastodon stream listener shut down gracefully.")
 
     await db_manager.close()
 
